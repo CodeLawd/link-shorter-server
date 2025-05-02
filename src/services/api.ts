@@ -24,6 +24,7 @@ export const apiEndpoints = {
   statistics: (shortPath: string) =>
     `${API_BASE_URL}/api/statistic/${shortPath}`,
   list: `${API_BASE_URL}/api/list`,
+  visit: (shortPath: string) => `${API_BASE_URL}/${shortPath}`,
 };
 
 // Core API functions
@@ -51,6 +52,18 @@ async function getStatistics(shortPath: string): Promise<UrlEntry> {
 async function listUrls(): Promise<UrlEntry[]> {
   const response = await axiosClient.get<UrlEntry[]>("/api/list");
   return response.data;
+}
+
+async function visitUrl(shortPath: string): Promise<string> {
+  try {
+    const response = await axiosClient.get(`/${shortPath}`);
+    queryClient.invalidateQueries({ queryKey: ["url", shortPath] });
+
+    return response.data?.url;
+  } catch (error) {
+    console.error("Error visiting URL:", error);
+    throw error;
+  }
 }
 
 // React Query hooks
@@ -84,10 +97,17 @@ export const useUrlsList = () => {
   });
 };
 
+export const useVisitUrl = () => {
+  return useMutation({
+    mutationFn: visitUrl,
+  });
+};
+
 // Original API for backward compatibility
 export const api = {
   encodeUrl,
   decodeUrl,
   getStatistics,
   listUrls,
+  visitUrl,
 };

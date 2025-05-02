@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { api } from "@/services/api";
+import { useEncodeUrl } from "@/services/api";
 
 interface ShortenFormProps {
   onSuccess?: () => void;
@@ -12,8 +14,7 @@ interface FormValues {
 
 export default function ShortenForm({ onSuccess }: ShortenFormProps) {
   const [shortUrl, setShortUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const encodeMutation = useEncodeUrl();
 
   const {
     register,
@@ -23,45 +24,45 @@ export default function ShortenForm({ onSuccess }: ShortenFormProps) {
   } = useForm<FormValues>();
 
   const onSubmit = async (data: FormValues) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setShortUrl(null);
-
-      const result = await api.encodeUrl(data.url);
-      setShortUrl(result);
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Reset form
-      reset();
-    } catch (err) {
-      setError("Failed to shorten URL. Please try again.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    encodeMutation.mutate(data.url, {
+      onSuccess: (result) => {
+        setShortUrl(result);
+        if (onSuccess) {
+          onSuccess();
+        }
+        reset();
+      },
+    });
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Shorten Your URL</h2>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label
-            htmlFor="url"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Enter a long URL
-          </label>
+    <div className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col md:flex-row gap-2"
+      >
+        <div className="relative flex-grow">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <svg
+              className="w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              ></path>
+            </svg>
+          </div>
           <input
             id="url"
             type="text"
-            placeholder="https://example.com/very/long/url"
-            className={`w-full px-4 py-2 border text-black rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
+            placeholder="Enter your long URL here..."
+            className={`w-full px-10 py-3 border text-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none ${
               errors.url ? "border-red-500" : "border-gray-300"
             }`}
             {...register("url", {
@@ -73,28 +74,24 @@ export default function ShortenForm({ onSuccess }: ShortenFormProps) {
               },
             })}
           />
-          {errors.url && (
-            <p className="mt-1 text-sm text-red-600">{errors.url.message}</p>
-          )}
         </div>
-
         <button
           type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 disabled:opacity-50"
+          disabled={encodeMutation.isPending}
+          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 disabled:opacity-50 whitespace-nowrap"
         >
-          {isLoading ? "Shortening..." : "Shorten URL"}
+          {encodeMutation.isPending ? "Shortening..." : "Shorten URL"}
         </button>
       </form>
 
-      {error && (
-        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
-          {error}
+      {encodeMutation.isError && (
+        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+          Failed to shorten URL. Please try again.
         </div>
       )}
 
       {shortUrl && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-md">
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
           <h3 className="text-sm font-medium text-gray-700 mb-2">
             Your shortened URL:
           </h3>
@@ -103,7 +100,7 @@ export default function ShortenForm({ onSuccess }: ShortenFormProps) {
               type="text"
               value={shortUrl}
               readOnly
-              className="flex-1 p-2 bg-white border border-gray-300 rounded-l-md text-sm"
+              className="flex-1 p-2 text-black bg-white border border-gray-300 rounded-l-md text-sm"
             />
             <button
               onClick={() => {

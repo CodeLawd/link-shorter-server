@@ -1,0 +1,60 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export default function Navbar() {
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/my-links", label: "My Links" },
+    { href: "/api-docs", label: "API Docs" },
+  ];
+
+  return (
+    <nav className="bg-white shadow-sm py-4 px-6">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-purple-500 font-semibold"
+        >
+          <div className="bg-purple-500 rounded-full p-1.5">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.2 7.8C12.7817 7.8 12.3765 7.97124 12.0827 8.26498C11.789 8.55871 11.6177 8.96392 11.6177 9.38224C11.6177 9.80057 11.789 10.2058 12.0827 10.4995C12.3765 10.7932 12.7817 10.9645 13.2 10.9645C13.6183 10.9645 14.0235 10.7932 14.3173 10.4995C14.611 10.2058 14.7823 9.80057 14.7823 9.38224C14.7823 8.96392 14.611 8.55871 14.3173 8.26498C14.0235 7.97124 13.6183 7.8 13.2 7.8Z"
+                fill="white"
+              />
+              <path
+                d="M20.4 9.6C20.4 10.6 19.8 11.4 19 11.7V14.4C19 17.4 15.4 20.4 12 20.4C8.6 20.4 5 17.4 5 14.4V11.7C4.2 11.4 3.6 10.6 3.6 9.6C3.6 8.5 4.5 7.6 5.6 7.6C5.8 5.7 7.5 4.2 9.6 4.2C10.8 4.2 11.8 4.5 12.6 5.3H12.8C13.4 5.3 14 5.5 14.5 5.9C15 6.3 15.3 6.8 15.5 7.3C16.1 7.3 16.6 7.6 17 7.9C17.7 8.6 18.4 9.8 18.4 10.9V11.6C19.5 11.5 20.4 10.6 20.4 9.6Z"
+                fill="white"
+              />
+            </svg>
+          </div>
+          <span className="text-xl">LinkShortner</span>
+        </Link>
+
+        <div className="flex gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-sm font-medium ${
+                pathname === link.href
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+}
