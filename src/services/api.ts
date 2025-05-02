@@ -58,6 +58,7 @@ async function visitUrl(shortPath: string): Promise<string> {
   try {
     const response = await axiosClient.get(`/${shortPath}`);
     queryClient.invalidateQueries({ queryKey: ["url", shortPath] });
+    queryClient.invalidateQueries({ queryKey: ["urls"] });
 
     return response.data?.url;
   } catch (error) {
